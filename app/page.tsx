@@ -1,95 +1,82 @@
+"use client";
+
 import Image from "next/image";
 import styles from "./page.module.css";
+import { useState, ChangeEvent, Suspense, useDeferredValue} from "react";
+
+import { useDebouncedCallback } from 'use-debounce';
+import { useSearchParams, usePathname, useRouter } from 'next/navigation';
+import fetchSearchResults from "./fetchSearchResults";
 
 export default function Home() {
-  return (
-    <main className={styles.main}>
-      <div className={styles.description}>
-        <p>
-          Get started by editing&nbsp;
-          <code className={styles.code}>app/page.tsx</code>
-        </p>
-        <div>
-          <a
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{" "}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className={styles.vercelLogo}
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
-        </div>
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+  const { replace } = useRouter();
+	const [query, setQuery] = useState(searchParams.get('query')?.toString() || '');
+
+  const [searchResults, setSearchResults] = useState<any>(fetchSearchResults(searchParams.get('query')?.toString() || ''));
+
+  // ! const defferedQuery = useDeferredValue(query);
+
+  const search = useDebouncedCallback((q: string) => {
+    const params = new URLSearchParams(searchParams);
+    if (q) {
+      params.set('query', q);
+    } else {
+      params.delete('query');
+    }
+    replace(`${pathname}?${params.toString()}`);
+
+    setSearchResults(fetchSearchResults(q));
+  }, 300)
+
+	function handleInput(e: ChangeEvent<HTMLInputElement>) {
+    const q = e.target.value;
+		setQuery(q);
+    search(q);
+	}
+
+  function handleClear() {
+    setQuery('');
+    search('');
+  }
+
+	return (<div className={styles.search_container}>
+		<div className={styles.search}>
+			<Image src={"edabudet-logo.svg"} alt="Eda Budet" width={600} height={120} />
+			<div className={styles.search_bar}>
+				<span className={styles.search_icon}>⌕</span>
+				<input type="text" value={query} placeholder="search" onInput={handleInput} />
+				{query.length !== 0 && <button className={styles.close_icon} onClick={handleClear}>x</button>}
+			</div>
+		</div>
+    {
+        query.length !== 0 && (
+          <Suspense key={query} fallback={<SearchResultsFallback />}>
+            <SearchResults searchResults={searchResults}/>
+          </Suspense>
+        )
+      }  
+  </div>);
+}
+
+function SearchResults({searchResults}: {searchResults: any}){
+  return <ul className={styles.search_results}>{searchResults && searchResults.map((result: any, i: number) => (
+    <li className={styles.search_result}>
+      <Image
+        src={result.images.THUMBNAIL.url}
+        alt={`result ${i}`}
+        width={result.images.THUMBNAIL.width} 
+        height={result.images.THUMBNAIL.height}
+      />
+      <div className="description">
+        <h1 style={{fontSize: result.label.split('').length > 10 ? `${36 - result.label.split('').length / 2}pt` : '36pt'}}>{result.label}</h1>
+        <div className="traits">🥦  🍽️  🇮🇹 </div>
       </div>
+    </li>))}
+  </ul>
+}
 
-      <div className={styles.center}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
-
-      <div className={styles.grid}>
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Docs <span>-&gt;</span>
-          </h2>
-          <p>Find in-depth information about Next.js features and API.</p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Learn <span>-&gt;</span>
-          </h2>
-          <p>Learn about Next.js in an interactive course with&nbsp;quizzes!</p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Templates <span>-&gt;</span>
-          </h2>
-          <p>Explore starter templates for Next.js.</p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Deploy <span>-&gt;</span>
-          </h2>
-          <p>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
-    </main>
-  );
+function SearchResultsFallback(){
+  return <>...</>
 }
