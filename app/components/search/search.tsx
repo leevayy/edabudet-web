@@ -91,8 +91,8 @@ function SearchResults({ searchResults, size }: { searchResults: any, size: Sear
 								<h1
 									style={{
 										fontSize:
-											result.label.split("").length > 10
-												? `${defaultFontSize - result.label.split("").length / 2}pt`
+											result.label.length > 10
+												? `${defaultFontSize - result.label.length * 3}pt`
 												: `${defaultFontSize}pt`,
 									}}
 								>
