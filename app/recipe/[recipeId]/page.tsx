@@ -70,8 +70,8 @@ export default function Recipe({ params }: { params: { recipeId: string } }) {
                         {filteredData.cookTime && <AdditionalInfo name="cook time" value={filteredData.cookTime} type="default"/> }
                         {filteredData.servings && <AdditionalInfo name="servings" value={filteredData.servings} type="default"/> }
                         {
-                            filteredData.macros.map(macro => (
-                                <AdditionalInfo name={macro.name} value={macro.value} type="macro" />
+                            filteredData.macros.map((macro, i) => (
+                                <AdditionalInfo key={i} name={macro.name} value={macro.value} type="macro" />
                             ))
                         }
                     </div>

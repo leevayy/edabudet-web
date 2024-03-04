@@ -92,7 +92,7 @@ function SearchResults({ searchResults, size }: { searchResults: any, size: Sear
 									style={{
 										fontSize:
 											result.label.length > 10
-												? `${defaultFontSize - result.label.length * 3}pt`
+												? `${defaultFontSize - result.label.length / 2}pt`
 												: `${defaultFontSize}pt`,
 									}}
 								>
